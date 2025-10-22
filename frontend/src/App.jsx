@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 // ✅ Connect to backend Socket.IO server
-const socket = io("https://letchat-ad1t.onrender.com", {
+const socket = io("https://letchat-o84n.onrender.com", {
   transports: ["websocket"], 
 });
 
