@@ -294,14 +294,15 @@ const styles = {
     color: '#666',
     textTransform: 'capitalize'
   },
-  chatArea: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minWidth: 0,
-    height: '100vh',
-    overflow: 'hidden'
-  },
+ chatArea: {
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: 0,
+  height: '100vh',
+  overflow: 'hidden',
+  position: 'relative' 
+},
   header: {
     padding: '20px 24px',
     background: '#111',
@@ -352,6 +353,7 @@ const styles = {
     overflowY: 'auto',
     overflowX: 'hidden',
     padding: '24px',
+    paddingBottom: '100px',
     display: 'flex',
     flexDirection: 'column',
     gap: '16px'
@@ -390,14 +392,17 @@ const styles = {
     marginTop: '4px',
     padding: '0 4px'
   },
-  inputArea: {
-    padding: '20px 24px',
-    background: '#111',
-    borderTop: '1px solid #1a1a1a',
-    display: 'flex',
-    gap: '12px',
-    flexShrink: 0
-  },
+ inputArea: {
+  position: 'sticky',   
+  bottom: 0,          
+  padding: '20px 24px',
+  background: '#111',
+  borderTop: '1px solid #1a1a1a',
+  display: 'flex',
+  gap: '12px',
+  flexShrink: 0,
+  zIndex: 10           
+},
   input: {
     flex: 1,
     padding: '12px 16px',
