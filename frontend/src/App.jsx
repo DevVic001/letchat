@@ -83,7 +83,7 @@ const ChatApp = () => {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
           margin: 0;
           padding: 0;
-          overflow: hidden;
+          overflow: auto; /* allow inner scrolling on mobile */
         }
         html, body, #root {
           width: 100%;
@@ -99,16 +99,18 @@ const ChatApp = () => {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        .overlay { display: none; }
+
         @media (max-width: 768px) {
           .sidebar {
             position: fixed !important;
-            left: ${sidebarOpen ? '0' : '-100%'} !important;
             top: 0 !important;
             bottom: 0 !important;
             width: 280px !important;
             max-width: 85vw !important;
             z-index: 1000 !important;
-            transition: left 0.3s ease !important;
+            transform: ${sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'} !important;
+            transition: transform 0.3s ease !important;
           }
           .overlay {
             display: ${sidebarOpen ? 'block' : 'none'} !important;
