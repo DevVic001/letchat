@@ -133,9 +133,17 @@ const ChatApp = () => {
           }
           .messages {
             padding: 16px !important;
+            padding-bottom: 140px !important; /* leave room for fixed input + keyboard */
           }
           .input-area {
             padding: 12px 16px !important;
+            position: fixed !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 1002 !important;
+            background: #111 !important;
+            border-top: 1px solid #1a1a1a !important;
           }
           .message {
             max-width: 85% !important;
@@ -223,15 +231,10 @@ const styles = {
   container: {
     display: 'flex',
     width: '100vw',
-    height: '100vh',
+    minHeight: '100vh',
     background: '#0a0a0a',
     color: '#e0e0e0',
-    overflow: 'hidden',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
+    overflow: 'hidden'
   },
   sidebar: {
     width: '280px',
@@ -301,7 +304,8 @@ const styles = {
   display: 'flex',
   flexDirection: 'column',
   minWidth: 0,
-  height: '100vh',
+  height: '100%',
+  minHeight: 0,
   overflow: 'hidden',
   position: 'relative' 
 },
