@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 // ✅ Connect to backend Socket.IO server
-const socket = io("http://localhost:5000", {
+const socket = io("https://letchat-6gfs.onrender.com", {
   transports: ["websocket"], 
 });
 
@@ -47,28 +47,7 @@ const ChatApp = () => {
     { id: 2, name: 'Tech Talk', avatar: '💻' },
     { id: 3, name: 'Random', avatar: '🎲' }
   ] 
-
- useEffect(() => {
-  const fetchMessages = async () => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/messages/${selectedRoom}`);
-      const data = await res.json();
-      setChats(prev => ({
-        ...prev,
-        [selectedRoom]: (data.chats || []).map(msg => ({
-          ...msg,
-          sender: msg.sender === socket.id ? 'me' : 'other'
-        }))
-      })); 
-      chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchMessages(); 
-  socket.emit('join_room', selectedRoom)  
-}, [selectedRoom]);
+ 
 
 
   useEffect(() => { 
@@ -93,7 +72,7 @@ const ChatApp = () => {
       }
       const myUserId = localStorage.getItem('userId');
       
-      const res = await fetch(`http://localhost:5000/api/messages/${selectedRoom}`);
+      const res = await fetch(`https://letchat-6gfs.onrender.com/api/messages/${selectedRoom}`);
       if (!res.ok) throw new Error('Failed to fetch messages');
       const data = await res.json();
       setChats(prev => ({
