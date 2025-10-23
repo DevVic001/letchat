@@ -2,9 +2,38 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 // ✅ Connect to backend Socket.IO server
-const socket = io("https://letchat-6gfs.onrender.com", {
+const socket = io("http://localhost:5000", {
   transports: ["websocket"], 
 });
+
+// Set userId in localStorage when socket connects
+socket.on('connect', () => {
+  if (!localStorage.getItem('userId')) {
+    localStorage.setItem('userId', socket.id);
+  }
+}); 
+
+
+//example chat structure expected 
+// {
+//   "chats": [
+//     {
+//       "_id": "67205c56a938bb5d1dfb9157",
+//       "room": 1,
+//       "sender": "a9df2321fef34812",
+//       "text": "Hello world",
+//       "time": "2025-10-23T18:41:23.000Z"
+//     },
+//     {
+//       "_id": "67205c56a938bb5d1dfb9158",
+//       "room": 1,
+//       "sender": "d4b8d87f943bb3ee",
+//       "text": "Hi there!",
+//       "time": "2025-10-23T18:42:10.000Z"
+//     }
+//   ]
+// }
+
 
 const ChatApp = () => {
   const [selectedRoom, setSelectedRoom] = useState(1);
@@ -17,44 +46,96 @@ const ChatApp = () => {
     { id: 1, name: 'General', avatar: '🌐' },
     { id: 2, name: 'Tech Talk', avatar: '💻' },
     { id: 3, name: 'Random', avatar: '🎲' }
-  ]
+  ] 
 
-  useEffect(() => {
-    chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chats, selectedRoom]);
-  
-  useEffect(() => {
-    socket.emit("join_room", selectedRoom);
-  }, [selectedRoom]);
+ useEffect(() => {
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/messages/${selectedRoom}`);
+      const data = await res.json();
+      setChats(prev => ({
+        ...prev,
+        [selectedRoom]: (data.chats || []).map(msg => ({
+          ...msg,
+          sender: msg.sender === socket.id ? 'me' : 'other'
+        }))
+      })); 
+      chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchMessages(); 
+  socket.emit('join_room', selectedRoom)  
+}, [selectedRoom]);
+
 
   useEffect(() => { 
-    socket.on("receive_message", (data) => {
-      const isMe = data.sender === socket.id; 
+    const handleReceiveMessage = (data) => {
+      const myUserId = localStorage.getItem('userId');
+      const isMe = data.sender === myUserId;
       setChats(prev => ({
         ...prev,
         [data.room]: [...(prev[data.room] || []), {...data, sender: isMe ? 'me' : 'other'}]
       }));
-    });
+      chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
-    return () => socket.off("receive_message");
-  }, []);
+    socket.on("receive_message", handleReceiveMessage);
+
+    // Fetch existing messages when joining a room
+    const fetchMessages = async () => {
+      try {
+        // Store socket.id in localStorage to maintain identity across refreshes
+      if (!localStorage.getItem('userId')) {
+        localStorage.setItem('userId', socket.id);
+      }
+      const myUserId = localStorage.getItem('userId');
+      
+      const res = await fetch(`http://localhost:5000/api/messages/${selectedRoom}`);
+      if (!res.ok) throw new Error('Failed to fetch messages');
+      const data = await res.json();
+      setChats(prev => ({
+        ...prev,
+        [selectedRoom]: (data.chats || []).map(msg => ({
+          ...msg,
+          sender: msg.sender === myUserId ? 'me' : 'other'
+        }))
+      }));
+        chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        console.error('Error fetching messages:', err);
+      }
+    };
+
+    // Join room and fetch messages
+    socket.emit('join_room', selectedRoom);
+    fetchMessages();
+
+    return () => {
+      socket.off("receive_message", handleReceiveMessage);
+    };
+  }, [selectedRoom]); // Re-run when room changes
+
 
   const sendMessage = () => {
-    if (!message.trim()) return;
+    if (!message.trim()) return; 
     
-    setChats(prev => ({
-      ...prev,
-      [selectedRoom]: [...(prev[selectedRoom] || []), { text: message, sender: 'me', time: 'now' }]
-    }));
-    setMessage('');
-
-    socket.emit("send_message", {
+    const myUserId = localStorage.getItem('userId');
+    const newMsg = {
       text: message,
-      room: selectedRoom, 
-      sender: socket.id,
-      time: "now"
-    });
-  };
+      room: selectedRoom,
+      sender: myUserId,
+      time: new Date().toISOString()
+    };
+
+    // Emit to server first
+    socket.emit("send_message", newMsg);
+    
+    // Clear input immediately
+    setMessage('');
+  }
 
   const handleRoomSelect = (roomId) => {
     setSelectedRoom(roomId);
