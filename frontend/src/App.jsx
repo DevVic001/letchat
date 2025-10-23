@@ -74,7 +74,7 @@ const ChatApp = () => {
         
         html, body, #root {
           width: 100%;
-          height: 100%;
+          height: 100vh;
           margin: 0;
           padding: 0;
           overflow: hidden;
@@ -87,18 +87,6 @@ const ChatApp = () => {
           left: 0;
           right: 0;
           bottom: 0;
-          overscroll-behavior: none;
-          -webkit-overflow-scrolling: touch;
-        }
-        
-        /* iOS Safari viewport fix */
-        @supports (-webkit-touch-callout: none) {
-          html, body, #root {
-            height: -webkit-fill-available;
-          }
-          .chat-area {
-            height: -webkit-fill-available !important;
-          }
         }
         
         @keyframes glow {
@@ -119,17 +107,7 @@ const ChatApp = () => {
           display: none;
         }
 
-        /* Tablet styles (768px - 1024px) */
-        @media (max-width: 1024px) and (min-width: 769px) {
-          .sidebar {
-            width: 240px !important;
-          }
-          .message {
-            max-width: 75% !important;
-          }
-        }
-
-        /* Mobile and small tablet styles */
+        /* Mobile and tablet styles */
         @media (max-width: 768px) {
           .sidebar {
             position: fixed !important;
@@ -139,13 +117,12 @@ const ChatApp = () => {
             width: 280px !important;
             max-width: 80vw !important;
             z-index: 1000 !important;
-            transform: ${sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'} !important;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            box-shadow: ${sidebarOpen ? '2px 0 10px rgba(0,0,0,0.5)' : 'none'} !important;
+            transform: ${sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'};
+            transition: transform 0.3s ease !important;
           }
           
           .overlay {
-            display: ${sidebarOpen ? 'block' : 'none'} !important;
+            display: ${sidebarOpen ? 'block' : 'none'};
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -153,34 +130,31 @@ const ChatApp = () => {
             bottom: 0 !important;
             background: rgba(0,0,0,0.7) !important;
             z-index: 999 !important;
-            backdrop-filter: blur(2px) !important;
           }
           
           .toggle-btn {
             display: flex !important;
           }
           
-          .chat-area {
-            width: 100% !important;
-            height: 100vh !important;
-            height: -webkit-fill-available !important;
-          }
-          
           .header {
             padding: 12px 16px !important;
-            min-height: 64px !important;
           }
           
           .messages {
             padding: 16px !important;
-            padding-top: 80px !important;
-            padding-bottom: 90px !important;
-            -webkit-overflow-scrolling: touch !important;
+            padding-top: 76px !important;
+            padding-bottom: 80px !important;
           }
           
           .input-area {
             padding: 12px 16px !important;
-            gap: 8px !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #111 !important;
+            border-top: 1px solid #1a1a1a !important;
+            z-index: 1001 !important;
           }
           
           .message {
@@ -188,45 +162,23 @@ const ChatApp = () => {
           }
           
           .button {
-            padding: 12px 20px !important;
-            font-size: 14px !important;
+            padding: 12px 18px !important;
           }
-          
+
           .input {
-            font-size: 16px !important; /* Prevents zoom on iOS */
+            font-size: 16px !important;
           }
         }
 
-        /* Small mobile devices */
         @media (max-width: 480px) {
-          .sidebar {
-            width: 260px !important;
-            max-width: 85vw !important;
-          }
-          
-          .header {
-            padding: 10px 12px !important;
-            min-height: 60px !important;
-          }
-          
           .messages {
             padding: 12px !important;
             padding-top: 70px !important;
-            padding-bottom: 85px !important;
+            padding-bottom: 75px !important;
           }
           
           .input-area {
             padding: 10px 12px !important;
-            gap: 8px !important;
-          }
-          
-          .message {
-            max-width: 90% !important;
-          }
-          
-          .bubble {
-            font-size: 14px !important;
-            padding: 10px 14px !important;
           }
           
           .button {
@@ -235,30 +187,9 @@ const ChatApp = () => {
           }
         }
 
-        /* Large desktop */
-        @media (min-width: 1440px) {
-          .sidebar {
-            width: 320px !important;
-          }
-          .message {
-            max-width: 60% !important;
-          }
-        }
-
-        /* Landscape mobile */
-        @media (max-height: 500px) and (orientation: landscape) {
-          .header {
-            padding: 8px 12px !important;
-            min-height: 50px !important;
-          }
-          
-          .messages {
-            padding-top: 60px !important;
-            padding-bottom: 75px !important;
-          }
-          
-          .input-area {
-            padding: 8px 12px !important;
+        @media (min-width: 769px) {
+          .toggle-btn {
+            display: none !important;
           }
         }
       `}</style>
@@ -337,12 +268,7 @@ const styles = {
     height: '100vh',
     background: '#0a0a0a',
     color: '#e0e0e0',
-    overflow: 'hidden',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
+    overflow: 'hidden'
   },
   sidebar: {
     width: '280px',
@@ -351,8 +277,7 @@ const styles = {
     borderRight: '1px solid #1a1a1a',
     padding: '20px 0',
     flexShrink: 0,
-    overflowY: 'auto',
-    WebkitOverflowScrolling: 'touch'
+    overflowY: 'auto'
   },
   logo: {
     fontSize: '22px',
@@ -397,7 +322,6 @@ const styles = {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    minWidth: 0,
     height: '100vh',
     overflow: 'hidden',
     position: 'relative',
@@ -411,8 +335,10 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
     flexShrink: 0,
-    position: 'sticky',
+    position: 'absolute',
     top: 0,
+    left: 0,
+    right: 0,
     zIndex: 10
   },
   toggleBtn: {
@@ -451,11 +377,11 @@ const styles = {
     overflowY: 'auto',
     overflowX: 'hidden',
     padding: '24px',
+    paddingTop: '90px',
     paddingBottom: '100px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
-    WebkitOverflowScrolling: 'touch'
+    gap: '16px'
   },
   message: {
     display: 'flex',
@@ -504,7 +430,7 @@ const styles = {
     display: 'flex',
     gap: '12px',
     flexShrink: 0,
-    zIndex: 100
+    zIndex: 10
   },
   input: {
     flex: 1,
