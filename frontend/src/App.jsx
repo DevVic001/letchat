@@ -133,7 +133,7 @@ const ChatApp = () => {
           }
           .messages {
             padding: 16px !important;
-            padding-bottom: 140px !important; /* leave room for fixed input + keyboard */
+            padding-bottom: 90px !important;
           }
           .input-area {
             padding: 12px 16px !important;
@@ -299,16 +299,15 @@ const styles = {
     color: '#666',
     textTransform: 'capitalize'
   },
- chatArea: {
-  flex: 1,
-  display: 'flex',
-  flexDirection: 'column',
-  minWidth: 0,
-  height: '100%',
-  minHeight: 0,
-  overflow: 'hidden',
-  position: 'relative' 
-},
+  chatArea: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 0,
+    height: '100vh',
+    overflow: 'hidden',
+    position: 'relative'
+  },
   header: {
     padding: '20px 24px',
     background: '#111',
@@ -359,7 +358,7 @@ const styles = {
     overflowY: 'auto',
     overflowX: 'hidden',
     padding: '24px',
-    paddingBottom: '100px',
+    paddingBottom: '90px',
     display: 'flex',
     flexDirection: 'column',
     gap: '16px'
@@ -399,15 +398,18 @@ const styles = {
     padding: '0 4px'
   },
  inputArea: {
-  position: 'sticky',   
-  bottom: 0,          
+  position: 'sticky',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  width: '100%',
   padding: '20px 24px',
   background: '#111',
   borderTop: '1px solid #1a1a1a',
   display: 'flex',
   gap: '12px',
   flexShrink: 0,
-  zIndex: 10           
+  zIndex: 100
 },
   input: {
     flex: 1,
