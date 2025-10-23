@@ -13,42 +13,31 @@ const ChatApp = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const chatEnd = useRef(null);
  
-
   const rooms = [
     { id: 1, name: 'General', avatar: '🌐' },
     { id: 2, name: 'Tech Talk', avatar: '💻' },
     { id: 3, name: 'Random', avatar: '🎲' }
   ]
 
-  //this effect scrolls to the bottom of the chat when messages change
   useEffect(() => {
     chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chats, selectedRoom]);
   
-
-  //join room on room change
   useEffect(() => {
-  socket.emit("join_room", selectedRoom);
-}, [selectedRoom]);
+    socket.emit("join_room", selectedRoom);
+  }, [selectedRoom]);
 
-
-
-    // When a new message is received from server
   useEffect(() => { 
-    
-   socket.on("receive_message", (data) => {
-  const isMe = data.sender === socket.id; 
-  setChats(prev => ({
-    ...prev,
-    [data.room]: [...(prev[data.room] || []), {...data, sender: isMe ? 'me' : 'other'}]
-  }));
-});
+    socket.on("receive_message", (data) => {
+      const isMe = data.sender === socket.id; 
+      setChats(prev => ({
+        ...prev,
+        [data.room]: [...(prev[data.room] || []), {...data, sender: isMe ? 'me' : 'other'}]
+      }));
+    });
 
-
-    // cleanup on unmount
     return () => socket.off("receive_message");
   }, []);
-
 
   const sendMessage = () => {
     if (!message.trim()) return;
@@ -59,18 +48,17 @@ const ChatApp = () => {
     }));
     setMessage('');
 
-    // Emit message to server 
     socket.emit("send_message", {
-  text: message,
-  room: selectedRoom, 
- sender: socket.id,
-  time: "now"
-});
+      text: message,
+      room: selectedRoom, 
+      sender: socket.id,
+      time: "now"
+    });
   };
 
   const handleRoomSelect = (roomId) => {
     setSelectedRoom(roomId);
-    setSidebarOpen(false); // Close sidebar on mobile after selection
+    setSidebarOpen(false);
   };
 
   const currentRoom = rooms.find(u => u.id === selectedRoom);
@@ -78,52 +66,84 @@ const ChatApp = () => {
   return (
     <div style={styles.container}>
       <style>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+        * { 
+          margin: 0; 
+          padding: 0; 
+          box-sizing: border-box; 
+        }
+        
+        html, body, #root {
+          width: 100%;
+          height: 100%;
           margin: 0;
           padding: 0;
-          overflow: auto;
-          height: 100%;
-          position: relative;
+          overflow: hidden;
         }
-        html {
-          height: -webkit-fill-available;
-          height: 100%;
+        
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          overscroll-behavior: none;
+          -webkit-overflow-scrolling: touch;
         }
-        #root {
-          height: 100%;
-          position: relative;
-        }
+        
+        /* iOS Safari viewport fix */
         @supports (-webkit-touch-callout: none) {
+          html, body, #root {
+            height: -webkit-fill-available;
+          }
           .chat-area {
             height: -webkit-fill-available !important;
           }
-          body {
-            min-height: -webkit-fill-available;
-          }
         }
+        
         @keyframes glow {
           0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.4); }
           50% { box-shadow: 0 0 30px rgba(0,255,136,0.8); }
         }
+        
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .overlay { display: none; }
+        
+        .overlay { 
+          display: none; 
+        }
+        
+        .toggle-btn {
+          display: none;
+        }
 
+        /* Tablet styles (768px - 1024px) */
+        @media (max-width: 1024px) and (min-width: 769px) {
+          .sidebar {
+            width: 240px !important;
+          }
+          .message {
+            max-width: 75% !important;
+          }
+        }
+
+        /* Mobile and small tablet styles */
         @media (max-width: 768px) {
           .sidebar {
             position: fixed !important;
             top: 0 !important;
             bottom: 0 !important;
+            left: 0 !important;
             width: 280px !important;
-            max-width: 85vw !important;
+            max-width: 80vw !important;
             z-index: 1000 !important;
             transform: ${sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'} !important;
-            transition: transform 0.3s ease !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: ${sidebarOpen ? '2px 0 10px rgba(0,0,0,0.5)' : 'none'} !important;
           }
+          
           .overlay {
             display: ${sidebarOpen ? 'block' : 'none'} !important;
             position: fixed !important;
@@ -133,66 +153,118 @@ const ChatApp = () => {
             bottom: 0 !important;
             background: rgba(0,0,0,0.7) !important;
             z-index: 999 !important;
+            backdrop-filter: blur(2px) !important;
           }
+          
           .toggle-btn {
             display: flex !important;
           }
+          
           .chat-area {
             width: 100% !important;
-            height: 100% !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
+            height: 100vh !important;
+            height: -webkit-fill-available !important;
           }
+          
           .header {
-            padding: 15px 16px !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 10 !important;
+            padding: 12px 16px !important;
+            min-height: 64px !important;
           }
+          
           .messages {
             padding: 16px !important;
             padding-top: 80px !important;
-            padding-bottom: 80px !important;
-            height: 100% !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
+            padding-bottom: 90px !important;
+            -webkit-overflow-scrolling: touch !important;
           }
+          
           .input-area {
             padding: 12px 16px !important;
-            position: absolute !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            z-index: 1002 !important;
-            background: #111 !important;
-            border-top: 1px solid #1a1a1a !important;
+            gap: 8px !important;
           }
+          
           .message {
             max-width: 85% !important;
           }
+          
           .button {
             padding: 12px 20px !important;
+            font-size: 14px !important;
+          }
+          
+          .input {
+            font-size: 16px !important; /* Prevents zoom on iOS */
           }
         }
-        @media (min-width: 769px) {
-          .toggle-btn {
-            display: none !important;
+
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+          .sidebar {
+            width: 260px !important;
+            max-width: 85vw !important;
+          }
+          
+          .header {
+            padding: 10px 12px !important;
+            min-height: 60px !important;
+          }
+          
+          .messages {
+            padding: 12px !important;
+            padding-top: 70px !important;
+            padding-bottom: 85px !important;
+          }
+          
+          .input-area {
+            padding: 10px 12px !important;
+            gap: 8px !important;
+          }
+          
+          .message {
+            max-width: 90% !important;
+          }
+          
+          .bubble {
+            font-size: 14px !important;
+            padding: 10px 14px !important;
+          }
+          
+          .button {
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+          }
+        }
+
+        /* Large desktop */
+        @media (min-width: 1440px) {
+          .sidebar {
+            width: 320px !important;
+          }
+          .message {
+            max-width: 60% !important;
+          }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+          .header {
+            padding: 8px 12px !important;
+            min-height: 50px !important;
+          }
+          
+          .messages {
+            padding-top: 60px !important;
+            padding-bottom: 75px !important;
+          }
+          
+          .input-area {
+            padding: 8px 12px !important;
           }
         }
       `}</style>
 
-      {/* Overlay for mobile */}
       <div className="overlay" onClick={() => setSidebarOpen(false)} />
 
-      {/* Sidebar */}
       <div style={styles.sidebar} className="sidebar">
         <div style={styles.logo}>💬LetChat</div>
         {rooms.map(room => (
@@ -214,13 +286,13 @@ const ChatApp = () => {
         ))}
       </div>
 
-      {/* Chat Area */}
       <div style={styles.chatArea} className="chat-area">
         <div style={styles.header} className="header">
           <button 
             className="toggle-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             style={styles.toggleBtn}
+            aria-label="Toggle sidebar"
           >
             ☰
           </button>
@@ -233,7 +305,7 @@ const ChatApp = () => {
         <div style={styles.messages} className="messages">
           {(chats[selectedRoom] || []).map((msg, i) => (
             <div key={i} style={{...styles.message, ...(msg.sender === 'me' ? styles.messageMe : {})}} className="message">
-              <div style={{...styles.bubble, ...(msg.sender === 'me' ? styles.bubbleMe : styles.bubbleOther)}}>
+              <div style={{...styles.bubble, ...(msg.sender === 'me' ? styles.bubbleMe : styles.bubbleOther)}} className="bubble">
                 {msg.text}
               </div>
               <div style={styles.time}>{msg.time}</div>
@@ -245,6 +317,7 @@ const ChatApp = () => {
         <div style={styles.inputArea} className="input-area">
           <input
             style={styles.input}
+            className="input"
             placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -260,21 +333,26 @@ const ChatApp = () => {
 const styles = {
   container: {
     display: 'flex',
-    width: '100%',
-    height: '100%',
+    width: '100vw',
+    height: '100vh',
     background: '#0a0a0a',
     color: '#e0e0e0',
     overflow: 'hidden',
-    position: 'relative'
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0
   },
   sidebar: {
     width: '280px',
-    height: '100vh',
+    height: '100%',
     background: 'linear-gradient(180deg, #111 0%, #0a0a0a 100%)',
     borderRight: '1px solid #1a1a1a',
     padding: '20px 0',
     flexShrink: 0,
-    overflowY: 'auto'
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch'
   },
   logo: {
     fontSize: '22px',
@@ -286,7 +364,7 @@ const styles = {
     borderBottom: '1px solid #1a1a1a',
     marginBottom: '15px'
   },
-   room: {
+  room: {
     display: 'flex',
     alignItems: 'center',
     padding: '12px 20px',
@@ -307,28 +385,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '20px',
-    position: 'relative',
+    flexShrink: 0,
     border: '2px solid #1a1a1a'
-  },
-  statusDot: {
-    position: 'absolute',
-    bottom: '0',
-    right: '0',
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-    border: '2px solid #111',
-    animation: 'glow 2s infinite'
   },
   userName: {
     fontSize: '14px',
     fontWeight: '600',
     marginBottom: '2px'
-  },
-  userStatus: {
-    fontSize: '11px',
-    color: '#666',
-    textTransform: 'capitalize'
   },
   chatArea: {
     flex: 1,
@@ -337,7 +400,8 @@ const styles = {
     minWidth: 0,
     height: '100vh',
     overflow: 'hidden',
-    position: 'relative'
+    position: 'relative',
+    background: '#0a0a0a'
   },
   header: {
     padding: '20px 24px',
@@ -346,7 +410,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    flexShrink: 0
+    flexShrink: 0,
+    position: 'sticky',
+    top: 0,
+    zIndex: 10
   },
   toggleBtn: {
     background: 'rgba(0,255,136,0.15)',
@@ -379,20 +446,16 @@ const styles = {
     fontSize: '16px',
     fontWeight: '700'
   },
-  headerStatus: {
-    fontSize: '12px',
-    color: '#00ff88',
-    fontWeight: '500'
-  },
   messages: {
     flex: 1,
     overflowY: 'auto',
     overflowX: 'hidden',
     padding: '24px',
-    paddingBottom: '90px',
+    paddingBottom: '100px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px'
+    gap: '16px',
+    WebkitOverflowScrolling: 'touch'
   },
   message: {
     display: 'flex',
@@ -410,7 +473,8 @@ const styles = {
     fontSize: '14px',
     lineHeight: '1.4',
     wordWrap: 'break-word',
-    overflowWrap: 'break-word'
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word'
   },
   bubbleOther: {
     background: '#1a1a1a',
@@ -428,20 +492,20 @@ const styles = {
     marginTop: '4px',
     padding: '0 4px'
   },
- inputArea: {
-  position: 'sticky',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  width: '100%',
-  padding: '20px 24px',
-  background: '#111',
-  borderTop: '1px solid #1a1a1a',
-  display: 'flex',
-  gap: '12px',
-  flexShrink: 0,
-  zIndex: 100
-},
+  inputArea: {
+    position: 'sticky',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    padding: '20px 24px',
+    background: '#111',
+    borderTop: '1px solid #1a1a1a',
+    display: 'flex',
+    gap: '12px',
+    flexShrink: 0,
+    zIndex: 100
+  },
   input: {
     flex: 1,
     padding: '12px 16px',
