@@ -493,7 +493,7 @@ const styles = {
     padding: '0 4px'
   },
   inputArea: {
-    position: 'sticky',
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
