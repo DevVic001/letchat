@@ -47,7 +47,6 @@ const ChatApp = () => {
     { id: 2, name: 'Tech Talk', avatar: '💻' },
     { id: 3, name: 'Random', avatar: '🎲' }
   ] 
- 
 
 
   useEffect(() => { 
