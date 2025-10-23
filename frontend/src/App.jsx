@@ -83,13 +83,25 @@ const ChatApp = () => {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
           margin: 0;
           padding: 0;
-          overflow: auto; /* allow inner scrolling on mobile */
-        }
-        html, body, #root {
-          width: 100%;
+          overflow: auto;
           height: 100%;
-          margin: 0;
-          padding: 0;
+          position: relative;
+        }
+        html {
+          height: -webkit-fill-available;
+          height: 100%;
+        }
+        #root {
+          height: 100%;
+          position: relative;
+        }
+        @supports (-webkit-touch-callout: none) {
+          .chat-area {
+            height: -webkit-fill-available !important;
+          }
+          body {
+            min-height: -webkit-fill-available;
+          }
         }
         @keyframes glow {
           0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.4); }
@@ -127,17 +139,35 @@ const ChatApp = () => {
           }
           .chat-area {
             width: 100% !important;
+            height: 100% !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
           }
           .header {
             padding: 15px 16px !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 10 !important;
           }
           .messages {
             padding: 16px !important;
-            padding-bottom: 90px !important;
+            padding-top: 80px !important;
+            padding-bottom: 80px !important;
+            height: 100% !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
           }
           .input-area {
             padding: 12px 16px !important;
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             right: 0 !important;
             bottom: 0 !important;
@@ -230,11 +260,12 @@ const ChatApp = () => {
 const styles = {
   container: {
     display: 'flex',
-    width: '100vw',
-    minHeight: '100vh',
+    width: '100%',
+    height: '100%',
     background: '#0a0a0a',
     color: '#e0e0e0',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    position: 'relative'
   },
   sidebar: {
     width: '280px',
