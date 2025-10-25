@@ -1,46 +1,41 @@
 import { useState, useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
-
-// ✅ Connect to backend Socket.IO server
-const socket = io("https://letchat-6gfs.onrender.com", {
-  transports: ["websocket"], 
-});
-
-// Set userId in localStorage when socket connects
-socket.on('connect', () => {
-  if (!localStorage.getItem('userId')) {
-    localStorage.setItem('userId', socket.id);
-  }
-}); 
-
-
-//example chat structure expected 
-// {
-//   "chats": [
-//     {
-//       "_id": "67205c56a938bb5d1dfb9157",
-//       "room": 1,
-//       "sender": "a9df2321fef34812",
-//       "text": "Hello world",
-//       "time": "2025-10-23T18:41:23.000Z"
-//     },
-//     {
-//       "_id": "67205c56a938bb5d1dfb9158",
-//       "room": 1,
-//       "sender": "d4b8d87f943bb3ee",
-//       "text": "Hi there!",
-//       "time": "2025-10-23T18:42:10.000Z"
-//     }
-//   ]
-// }
-
-
+import { io } from 'socket.io-client'; 
+ 
 const ChatApp = () => {
   const [selectedRoom, setSelectedRoom] = useState(1);
   const [message, setMessage] = useState('');
+  const [isConnected, setIsConnected] = useState(false); // Track connection status
   const [chats, setChats] = useState({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const chatEnd = useRef(null);
+  const chatEnd = useRef(null); 
+  const socketRef = useRef(null);
+
+
+    // Initialize socket
+  useEffect(() => {
+    socketRef.current = io("https://letchat-6gfs.onrender.com", {
+      transports: ["websocket"],
+    });
+
+    const socket = socketRef.current;
+
+    socket.on('connect', () => {
+      if (!sessionStorage.getItem('userId')){
+        sessionStorage.setItem('userId', socket.id);
+      } 
+      setIsConnected(true); // ✅ Mark as connected
+      console.log('🔌 Connected with socket ID:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false); // ✅ Mark as disconnected
+      console.log('❌ Disconnected');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
  
   const rooms = [
     { id: 1, name: 'General', avatar: '🌐' },
@@ -51,7 +46,7 @@ const ChatApp = () => {
 
   useEffect(() => { 
     const handleReceiveMessage = (data) => {
-      const myUserId = localStorage.getItem('userId');
+      const myUserId = sessionStorage.getItem('userId');
       const isMe = data.sender === myUserId;
       setChats(prev => ({
         ...prev,
@@ -60,16 +55,12 @@ const ChatApp = () => {
       chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    socket.on("receive_message", handleReceiveMessage);
+     socketRef.current.on("receive_message", handleReceiveMessage);
 
     // Fetch existing messages when joining a room
     const fetchMessages = async () => {
-      try {
-        // Store socket.id in localStorage to maintain identity across refreshes
-      if (!localStorage.getItem('userId')) {
-        localStorage.setItem('userId', socket.id);
-      }
-      const myUserId = localStorage.getItem('userId');
+      try { 
+      const myUserId = sessionStorage.getItem('userId');
       
       const res = await fetch(`https://letchat-6gfs.onrender.com/api/messages/${selectedRoom}`);
       if (!res.ok) throw new Error('Failed to fetch messages');
@@ -88,11 +79,11 @@ const ChatApp = () => {
     };
 
     // Join room and fetch messages
-    socket.emit('join_room', selectedRoom);
+     socketRef.current.emit('join_room', selectedRoom);
     fetchMessages();
 
     return () => {
-      socket.off("receive_message", handleReceiveMessage);
+       socketRef.current.off("receive_message", handleReceiveMessage);
     };
   }, [selectedRoom]); // Re-run when room changes
 
@@ -100,7 +91,7 @@ const ChatApp = () => {
   const sendMessage = () => {
     if (!message.trim()) return; 
     
-    const myUserId = localStorage.getItem('userId');
+    const myUserId = sessionStorage.getItem('userId');
     const newMsg = {
       text: message,
       room: selectedRoom,
@@ -109,7 +100,7 @@ const ChatApp = () => {
     };
 
     // Emit to server first
-    socket.emit("send_message", newMsg);
+     socketRef.current.emit("send_message", newMsg);
     
     // Clear input immediately
     setMessage('');
@@ -256,7 +247,13 @@ const ChatApp = () => {
       <div className="overlay" onClick={() => setSidebarOpen(false)} />
 
       <div style={styles.sidebar} className="sidebar">
-        <div style={styles.logo}>💬LetChat</div>
+        <div style={styles.logo}>
+          💬LetChat 
+           {/* ✅ Show connection status */}
+          <span style={{fontSize: '12px', marginLeft: '8px', color: isConnected ? '#00ff88' : '#ff4444'}}>
+            {isConnected ? '●' : '○'}
+          </span>
+          </div>
         {rooms.map(room => (
           <div
             key={room.id}
@@ -311,9 +308,21 @@ const ChatApp = () => {
             placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            disabled={!isConnected} // Disable input until connected
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
           />
-          <button style={styles.button} className="button" onClick={sendMessage}>Send</button>
+          <button  style={{
+              ...styles.button,
+              opacity: isConnected ? 1 : 0.5, // Visual feedback
+              cursor: isConnected ? 'pointer' : 'not-allowed'
+            }} 
+             className="button" 
+             onClick={sendMessage}
+             disabled={!isConnected} // ✅ Disable button until connected
+             >
+              Send
+              </button>
+             
         </div>
       </div>
     </div>
