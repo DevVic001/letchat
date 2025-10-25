@@ -52,7 +52,9 @@ const ChatApp = () => {
         ...prev,
         [data.room]: [...(prev[data.room] || []), {...data, sender: isMe ? 'me' : 'other'}]
       }));
-      chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+       setTimeout(() => {
+    chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+  }, 50); 
     };
 
      socketRef.current.on("receive_message", handleReceiveMessage);
