@@ -93,7 +93,7 @@ const ChatApp = () => {
   const sendMessage = () => {
     if (!message.trim()) return; 
     const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); 
+    const time = now.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const myUserId = sessionStorage.getItem('userId');
     const newMsg = {
       text: message,
